@@ -15,7 +15,7 @@ This repository contains a browser-based app prototype, an animated methodology 
 6. [Data used](#6-data-used)
 7. [The app](#7-the-app)
 8. [Files](#8-files)
-9. [Limitations and next steps](#9-limitations-and-next-steps)
+9. [Next Steps](#9-next-steps)
 
 ## 1. The problem
 
@@ -136,7 +136,7 @@ From NASA POWER we downloaded:
 
 Open [`Prototype/index.html`](Prototype/index.html) in a browser to explore the app prototype. No build step is required. An internet connection is needed to load external libraries, fonts, map tiles and live data requests.
 
-The screenshots below show the prototype interface. Forecasts, alerts and photo replies include example values, as described in [Limitations and next steps](#9-limitations-and-next-steps).
+The screenshots below show the prototype interface. Forecasts, alerts and photo replies include example values, as described in [Next Steps](#9-next-steps).
 
 | | | |
 |---|---|---|
@@ -165,7 +165,7 @@ AgroRadar/
     └── app_*.png
 ```
 
-## 9. Next steps
+## 9. Next Steps
 
 Future Works:
 
