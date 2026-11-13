@@ -1,0 +1,330 @@
+<title>AgroRadar Flow 5</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500;600&family=Noto+Sans+Bengali:wght@500;600&display=swap">
+<style>
+/* Layout: the methodology figure as a 1280×720 slide (Inputs | AI modules | Outputs). Plain boxes; one data card travels; zone switch changes the story. White by request. */
+:root{
+  color-scheme:light;
+  --bg:#FFFFFF; --lane:#F3F6F4; --lane-h:#2C4A5E; --ink:#111816; --muted:#5E6B64; --line:#D3DBD6; --arrow:#33463D;
+  --sky:#1F5C94; --sun:#9A5F00; --clay:#A2461F; --leaf:#157042; --plum:#6B3289;
+  --sky-soft:#E4EEF8; --sun-soft:#FBEFD9; --clay-soft:#F8E5DC; --leaf-soft:#E1F2E8; --plum-soft:#F2E7F7;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Source Sans 3","Noto Sans Bengali","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --f-bn:"Noto Sans Bengali","Source Sans 3",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);overflow:hidden;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:8px}
+#fit{position:relative;width:100%;height:100%}
+#cv{position:absolute;width:1280px;height:720px;transform-origin:0 0;background:var(--bg)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+.bn{font-family:var(--f-bn);font-weight:500}
+
+/* top bar */
+.top{position:absolute;left:16px;right:16px;top:10px;height:44px;display:flex;align-items:center;gap:12px}
+.top h1{font-family:var(--f-display);font-weight:800;font-size:19px;margin:0;white-space:nowrap}
+.step{flex:1;display:flex;align-items:center;gap:10px;min-width:0}
+.step b{font-family:var(--f-mono);font-size:12px;font-weight:600;background:var(--ink);color:#fff;border-radius:12px;padding:3px 10px;white-space:nowrap}
+.step span{font-size:16.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.step span.in{animation:fade .4s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}}
+.zones{display:flex;border:1.5px solid #9EADA5;border-radius:8px;overflow:hidden}
+.zones button{border:0;background:#fff;padding:6px 10px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.zones button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.nav{display:flex;gap:6px}
+.btn{border:1.5px solid #9EADA5;background:#fff;border-radius:8px;padding:6px 12px;font-weight:700;font-size:14px;cursor:pointer}
+.btn:hover:not(:disabled){border-color:var(--ink)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.pri{background:var(--ink);color:#fff;border-color:var(--ink);min-width:88px}
+
+/* lanes */
+.lane{position:absolute;top:64px;height:644px;background:var(--lane);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.lane>span{display:block;height:30px;line-height:30px;text-align:center;background:var(--lane-h);color:#fff;font-family:var(--f-display);font-weight:700;font-size:15px;letter-spacing:.02em}
+
+/* arrows */
+svg#ar{position:absolute;left:0;top:0;width:1280px;height:720px;pointer-events:none;overflow:visible}
+.a{fill:none;stroke:var(--arrow);stroke-width:2.2;opacity:.85;transition:stroke .25s,stroke-width .25s,opacity .25s}
+.a.ctx{stroke-dasharray:6 5;opacity:.45}
+.a.live{stroke:var(--c);stroke-width:3.4;opacity:1}
+.al{font-family:var(--f-body);font-style:italic;font-size:13px;fill:var(--muted);paint-order:stroke;stroke:var(--lane);stroke-width:4px;stroke-linejoin:round}
+
+/* simple boxes */
+.box{position:absolute;background:#fff;border:2px solid #4A5F55;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:4px;padding:8px;transition:border-color .25s,box-shadow .25s}
+.box .ic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:var(--soft);color:var(--c);font-family:var(--f-mono);font-weight:600;font-size:12px;flex:none}
+.box small{font-family:var(--f-mono);font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--c)}
+.box b{font-family:var(--f-display);font-weight:700;font-size:15px;line-height:1.15}
+.box .loc{font-size:11.5px;color:var(--muted);line-height:1.2}
+.c-sky{--c:var(--sky);--soft:var(--sky-soft)} .c-sun{--c:var(--sun);--soft:var(--sun-soft)} .c-clay{--c:var(--clay);--soft:var(--clay-soft)}
+.c-leaf{--c:var(--leaf);--soft:var(--leaf-soft)} .c-plum{--c:var(--plum);--soft:var(--plum-soft)} .c-ink{--c:var(--ink);--soft:#EDF0EE}
+.box.on,.box.busy{border-color:var(--c);box-shadow:0 0 0 5px color-mix(in srgb,var(--c) 16%,transparent)}
+.box .pb{position:absolute;left:10px;right:10px;bottom:7px;height:4px;border-radius:2px;background:#EEF1EF;overflow:hidden;opacity:0;transition:opacity .2s}
+.box .pb i{display:block;height:100%;width:0;background:var(--c)}
+.box.busy .pb{opacity:1}
+.box.busy .pb i{animation:prog var(--d,1s) linear forwards}
+@keyframes prog{to{width:100%}}
+#A3.kwon .ic{display:none} #A3.kwon{gap:2px}
+.kw{display:flex;flex-wrap:wrap;justify-content:center;gap:3px;max-width:100%}
+.kw span{font-family:var(--f-mono);font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px;background:var(--soft);color:var(--c);border:1px solid color-mix(in srgb,var(--c) 40%,transparent);animation:pop .3s ease}
+@keyframes pop{from{transform:scale(.5);opacity:0}}
+
+/* travelling data card */
+.card{position:absolute;width:190px;background:#fff;border:2px solid var(--c);border-radius:10px;box-shadow:0 8px 22px rgba(17,24,22,.14);padding:7px 10px 8px;
+  transform:translate(-50%,-50%) scale(var(--s,1));opacity:var(--o,1);transition:left .75s cubic-bezier(.55,0,.35,1),top .75s cubic-bezier(.55,0,.35,1),transform .75s cubic-bezier(.55,0,.35,1),opacity .6s;z-index:8}
+.card .h{font-family:var(--f-mono);font-size:10.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--c);margin-bottom:4px;display:flex;justify-content:space-between;gap:6px}
+.card ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.card li{font-size:12.5px;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:6px;line-height:1.3;white-space:nowrap}
+.card li em{font-style:normal;font-family:var(--f-mono);font-size:10px;font-weight:600;color:#fff;background:var(--c);border-radius:3px;padding:1px 4px}
+.card li.more{color:var(--muted);font-weight:400;font-size:12px}
+.card li.ss{display:grid;grid-template-columns:1fr auto;gap:0 6px;border-bottom:1px solid var(--line);padding-bottom:3px}
+.card li.ss small{font-family:var(--f-mono);font-size:10.5px;font-weight:500;color:var(--muted);grid-column:1}
+.card li.ss strong{grid-row:1/3;grid-column:2;font-family:var(--f-mono);font-size:13px}
+.dn{color:var(--clay)} .up{color:var(--sky)}
+
+.fly{position:absolute;transform:translate(-50%,-50%);font-family:var(--f-mono);font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:12px;background:var(--c);color:#fff;white-space:nowrap;box-shadow:0 3px 10px rgba(17,24,22,.22);z-index:9;pointer-events:none}
+
+/* output table */
+.tab{position:absolute;background:#fff;border:2px solid #4A5F55;border-radius:12px;padding:8px 10px;transition:border-color .25s,box-shadow .25s;display:flex;flex-direction:column;gap:5px}
+.tab.on{border-color:var(--leaf);box-shadow:0 0 0 5px color-mix(in srgb,var(--leaf) 16%,transparent)}
+.tab .tt{display:flex;align-items:center;gap:8px}
+.tab .tt .ic{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:var(--leaf-soft);color:var(--leaf);font-family:var(--f-mono);font-weight:600}
+.tab .tt b{font-family:var(--f-display);font-weight:700;font-size:15px;line-height:1.1}
+.rt{display:grid;grid-template-columns:40px repeat(4,minmax(0,1fr));gap:3px}
+.rt .h{font-family:var(--f-mono);font-size:10px;font-weight:600;color:var(--muted);text-align:center}
+.rt .y{display:grid;grid-template-columns:1fr auto;align-items:center;font-family:var(--f-display);font-weight:700;font-size:12px}
+.rt .y i{font-style:normal;font-family:var(--f-mono);font-size:7.5px;font-weight:500;color:var(--muted);line-height:13.4px;text-align:right}
+.cell{border:1px solid var(--line);border-radius:5px;padding:3px 3px;font-size:10.5px;line-height:1.22;min-height:46px;background:#fff;transition:background .3s,border-color .3s,box-shadow .3s}
+.cell div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:3px;padding:0 2px}
+.cell .fal{color:var(--muted);font-style:italic}
+.cell sup{font-family:var(--f-mono);font-size:7.5px;font-weight:700;padding:0 2px;border-radius:2px;margin-left:2px}
+.s-n{color:var(--leaf);border:1px solid var(--leaf)}
+.cell .pt{font-size:8px;font-weight:700;margin-left:1px}
+.cell div.k-m .pt{color:var(--clay)} .cell div.k-r .pt{color:var(--sky)}
+.cell div.k-r{background:transparent}
+.extras .cell div.k-m{background:var(--clay-soft);color:var(--clay);font-weight:700}
+.extras .cell div.k-r{background:var(--sky-soft);color:var(--sky);font-weight:700}
+.cell.e{background:#F6F8F7;border-style:dashed}.cell.e>*{visibility:hidden}
+.cell.pop{animation:cp .45s ease}
+@keyframes cp{0%{background:var(--leaf-soft);transform:scale(.88)}}
+.cell.fx{border-color:var(--plum);box-shadow:0 0 0 2px color-mix(in srgb,var(--plum) 40%,transparent)}
+.cell div.hl{outline:2px solid var(--plum);outline-offset:-1px;color:var(--plum);font-weight:700}
+.mx{display:grid;grid-template-columns:1fr 1fr;gap:3px 8px;font-size:11px;border-top:1px solid var(--line);padding-top:5px;min-height:38px;align-content:start}
+.mx div{display:grid;grid-template-columns:46px 1fr;gap:6px;align-items:center;animation:fade .35s ease}
+.mx div em{font-style:normal;font-family:var(--f-mono);font-size:9.5px;font-weight:600;border-radius:3px;text-align:center;padding:1px 0}
+.mx .t-m em{background:var(--clay-soft);color:var(--clay)} .mx .t-r em{background:var(--sky-soft);color:var(--sky)} .mx .t-n em{color:var(--leaf);border:1px solid var(--leaf)} .mx .t-s em{background:#EDF0EE;color:var(--ink)}
+.tf{display:flex;justify-content:space-between;align-items:center;font-size:10.5px;color:var(--muted);gap:6px}
+.tf .lp{font-family:var(--f-mono);font-weight:600;color:var(--leaf)}
+.ph{color:var(--muted);font-size:12px;font-style:italic;text-align:center}
+
+/* chat */
+.slot{position:absolute;display:flex;flex-direction:column;gap:5px;justify-content:flex-start}
+.msg{border-radius:10px;padding:4px 9px;font-size:12px;line-height:1.32;animation:fade .35s ease}
+.msg .w{display:block;font-family:var(--f-mono);font-size:9.5px;font-weight:600;color:var(--muted)}
+.msg.f{align-self:flex-end;background:#fff;border:1.5px solid #9EADA5;max-width:95%}
+.msg.a{background:var(--plum-soft);border:1.5px solid color-mix(in srgb,var(--plum) 40%,transparent)}
+.msg.a .w{color:var(--plum)}
+.tg{font-family:var(--f-mono);font-size:9px;font-weight:700;padding:0 4px;border-radius:3px;margin-left:2px;background:var(--soft);color:var(--c);vertical-align:1px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+
+<div id="fit"><div id="cv">
+  <div class="top">
+    <h1>AgroRadar</h1>
+    <div class="step"><b id="sn">Step 1 / 8</b><span id="sc"></span></div>
+    <div class="zones" role="group" aria-label="Demo zone">
+      <button type="button" id="z-teesta" data-z="teesta" aria-pressed="true">Teesta · Zone 3</button>
+      <button type="button" id="z-coast" data-z="coast" aria-pressed="false">Coast · Zone 13</button>
+    </div>
+    <div class="nav">
+      <button class="btn" id="back" type="button">◀ Back</button>
+      <button class="btn pri" id="play" type="button">❚❚ Pause</button>
+      <button class="btn" id="next" type="button">Next ▶</button>
+    </div>
+  </div>
+
+  <div class="lane" style="left:16px;width:170px"><span>Inputs</span></div>
+  <div class="lane" style="left:198px;width:702px"><span>AI / Analytical Modules</span></div>
+  <div class="lane" style="left:912px;width:352px"><span>Outputs</span></div>
+
+  <svg id="ar" viewBox="0 0 1280 720" aria-hidden="true">
+    <defs><marker id="mk" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker></defs>
+    <path class="a" id="e-W-XAI"   d="M176,165 H370"/>
+    <path class="a" id="e-XAI-XGB" d="M532,165 H724"/>
+    <path class="a" id="e-XGB-ROT" d="M806,222 V398"/>
+    <path class="a" id="e-ROT-TAB" d="M886,430 H920"/>
+    <path class="a" id="e-ROT-A3"  d="M726,461 H636"/>
+    <path class="a" id="e-W-A3"    d="M101,222 V440 H370"/>
+    <path class="a" id="e-KB-A3"   d="M176,500 H370"/>
+    <path class="a" id="e-KB-ROT"  d="M176,588 H846 V524"/>
+    <path class="a ctx" id="e-XAI-A3" d="M452,222 V398"/>
+    <path class="a ctx" id="e-XGB-A3" d="M760,222 V330 H560 V398"/>
+    <path class="a" id="e-F-A3"    d="M920,501 H904 V548 H600 V524"/>
+    <path class="a" id="e-A3-F"    d="M450,524 V655 H920"/>
+    <text class="al" x="273" y="152" text-anchor="middle">weather features</text>
+    <text class="al" x="629" y="152" text-anchor="middle">important features</text>
+    <text class="al" x="818" y="300">forecasted</text><text class="al" x="818" y="316">weather features</text>
+    <text class="al" x="500" y="582" text-anchor="middle">crop, season, mixed/relay options, rules</text>
+    <text class="al" x="760" y="542" text-anchor="middle">question</text>
+    <text class="al" x="690" y="648" text-anchor="middle">explanation</text>
+  </svg>
+
+  <div class="box c-sky" id="W" style="left:26px;top:108px;width:150px;height:114px"><span class="ic">☁</span><b>Historical weather &amp; crop data</b><span class="loc" id="wloc"></span><span class="pb"><i></i></span></div>
+  <div class="box c-clay" id="KB" style="left:26px;top:470px;width:150px;height:140px"><span class="ic">▤</span><b>Static crop knowledge base</b><span class="loc">crops, seasons, mixed / relay, rules</span><span class="pb"><i></i></span></div>
+  <div class="box c-sun" id="XAI" style="left:372px;top:108px;width:160px;height:114px"><span class="ic">XAI</span><small>Agent 1</small><b>XAI feature analysis</b><span class="pb"><i></i></span></div>
+  <div class="box c-sky" id="XGB" style="left:726px;top:108px;width:160px;height:114px"><span class="ic">▥</span><small>Agent 2</small><b>XGBoost weather forecasting</b><span class="pb"><i></i></span></div>
+  <div class="box c-plum" id="A3" style="left:372px;top:400px;width:262px;height:122px"><span class="ic">LLM</span><small>Agent 3</small><b>Offline LLM</b><div class="kw" id="kw"></div><span class="pb"><i></i></span></div>
+  <div class="box c-leaf" id="ROT" style="left:726px;top:400px;width:160px;height:122px"><span class="ic">⟳</span><b>4-year crop rotation algorithm</b><span class="pb"><i></i></span></div>
+
+  <div class="tab" id="TAB" style="left:922px;top:104px;width:332px;height:358px">
+    <div class="tt"><span class="ic">▦</span><b>Final 4-year crop rotation table</b></div>
+    <div class="rt" id="rt"></div>
+    <div class="mx" id="mx"></div>
+    <div class="tf" id="tf"></div>
+  </div>
+  <div class="box c-ink" id="F" style="left:922px;top:470px;width:332px;height:62px;flex-direction:row;gap:10px"><span class="ic">☺</span><b>Farmer decision support</b><span class="pb"><i></i></span></div>
+  <div class="slot" id="chat" style="left:922px;top:540px;width:332px;height:164px"></div>
+
+  <div class="card" id="card" style="--o:0"></div>
+</div></div>
+
+<script>
+(()=>{
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const cv=$('#cv'),fit=$('#fit'),card=$('#card');
+function scale(){const s=Math.min(fit.clientWidth/1280,fit.clientHeight/720);cv.style.transform=`scale(${s})`;cv.style.left=((fit.clientWidth-1280*s)/2)+'px';cv.style.top=((fit.clientHeight-720*s)/2)+'px';}
+addEventListener('resize',scale);scale();
+$$('.a').forEach(p=>p.setAttribute('marker-end','url(#mk)'));
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- shared content ---------- */
+const INPUT={c:'sky',h:['Weather features','22'],li:['Rainfall','Sunlight','Wind','Water loss','Temperature','Humidity'],more:'+16 more readings'};
+const IMP={c:'sun',h:['Important features','9 of 22'],li:['Water loss after sowing','Season rain','Water loss before sowing','Sunlight at sowing'],more:'+5 more · 13 dropped'};
+/* ---------- zone scenarios ---------- */
+const Z={
+ teesta:{
+  loc:'Rangpur · Zone 3',
+  fc:[['Rabi','রবি','98 → 80 mm',-18],['Kharif-1','খরিপ-১','1,410 → 1,240 mm',-12],['Kharif-2','খরিপ-২','911 → 1,030 mm',13]],
+  pat:{A:[['Boro'],['Jute','m','+greens'],['Fallow','f']],
+       V:[['W.veg'],['Maize','m','+mung'],['Brinjal']],
+       P:[['Potato'],['B.gram','n'],['T.Aman']],
+       M:[['Mustard'],['Mung','n'],['Aman','r','›lentil']]},
+  plan:[['A','M','P','V'],['V','A','M','P'],['P','V','A','M'],['M','P','V','A']],
+  mx:[['m','Mixed','Jute + leafy greens'],['m','Mixed','Maize + mung bean'],['r','Relay','Lentil into standing Aman'],['n','Legume','Mung, black gram: +N']],
+  q:'Why mung bean after mustard in Field 2?', focus:[[0,1,1]],
+  kw:[['W','Zone 3 · near Teesta','e-W-A3','sky'],['XAI','rain matters most','e-XAI-A3','sun'],['XGB','Kharif-1 rain −12%','e-XGB-A3','sky'],['KB','mung: 65 days, legume','e-KB-A3','clay'],['ROT','harvest before floods','e-ROT-A3','leaf']],
+  ans:[['You are in Zone 3, beside the Teesta. In the dry months the river runs low and canals dry up,','zone','ink'],[' and Kharif-1 rain is forecast 12% lower.','forecast','sky'],[' Mung bean needs little water and is ready in about 65 days, before the monsoon floods.','crop KB','clay'],[' It also adds nitrogen for your Aman.','plan','leaf']],
+  last:'Agent 3 answers using the Teesta zone\'s problem'},
+ coast:{
+  loc:'Satkhira · Zone 13',
+  fc:[['Rabi','রবি','163 → 130 mm',-20],['Kharif-1','খরিপ-১','635 → 560 mm',-12],['Kharif-2','খরিপ-২','1,304 → 1,400 mm',7]],
+  pat:{A:[['Boro','s'],['Fallow','f'],['T.Aman']],
+       V:[['Sunflower'],['Fallow','f'],['Aman','r','›khesari']],
+       P:[['W.melon'],['Fallow','f'],['Aman','m','+fish']],
+       M:[['Mung','n'],['Fallow','f'],['T.Aman']]},
+  plan:[['A','M','P','V'],['V','A','M','P'],['P','V','A','M'],['M','P','V','A']],
+  mx:[['m','Mixed','Aman + fish together'],['r','Relay','Khesari into standing Aman'],['s','Salt','Boro = BRRI dhan67'],['n','Legume','Mung, khesari: +N']],
+  q:'Why is Kharif-1 left fallow in every field?', focus:[[0,0,1],[0,1,1],[0,2,1],[0,3,1]],
+  kw:[['W','Zone 13 · coastal','e-W-A3','sky'],['XAI','rain matters most','e-XAI-A3','sun'],['XGB','Rabi rain −20%','e-XGB-A3','sky'],['KB','crops fail > 4 dS/m','e-KB-A3','clay'],['ROT','Aman after monsoon','e-ROT-A3','leaf']],
+  ans:[['You are in Zone 13, near the coast. From March to May your soil turns salty, often above 8 dS/m,','zone','ink'],[' and most crops fail above 4 dS/m.','crop KB','clay'],[' Rabi rain is forecast 20% lower, so the salt will rise earlier.','forecast','sky'],[' So Kharif-1 rests; Aman follows when monsoon rain washes the salt away.','plan','leaf']],
+  last:'Agent 3 answers using the coastal zone\'s salinity'},
+};
+let zone='teesta',ZD=Z.teesta;
+const REST={input:[273,180],imp:[629,180],fc:[806,312]};
+const BOXC={W:[101,165],XAI:[452,165],XGB:[806,165],ROT:[806,461],A3:[503,461]};
+const STEPS=()=>['Weather data leaves the input','Agent 1 (XAI) keeps only the features that matter','Agent 2 (XGBoost) forecasts Rabi, Kharif-1 and Kharif-2','The rotation algorithm builds the 4-year plan','Mixed and relay crops are added from the knowledge base','The farmer asks a question','Agent 3 collects keywords from every module',ZD.last];
+const N=8;
+
+/* ---------- engine ---------- */
+let TOK={dead:false},cur=0,playing=!reduce;class X extends Error{}
+const w=ms=>{const t=TOK;return new Promise((r,j)=>setTimeout(()=>t.dead?j(new X):r(),reduce?0:ms));};
+function fly(edge,text,c,dur=800){
+  const p=document.getElementById(edge),t=TOK;p.style.setProperty('--c',`var(--${c})`);p.classList.add('live');
+  const done=()=>p.classList.remove('live');if(reduce){done();return w(0);}
+  const d=document.createElement('div');d.className='fly';d.textContent=text;d.style.setProperty('--c',`var(--${c})`);cv.appendChild(d);
+  const L=p.getTotalLength();let st;
+  return new Promise((res,rej)=>{function f(ts){if(t.dead){d.remove();done();return rej(new X);}
+    st??=ts;const k=Math.min(1,(ts-st)/dur),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2,pt=p.getPointAtLength(e*L);
+    d.style.left=pt.x+'px';d.style.top=pt.y+'px';if(k<1)requestAnimationFrame(f);else{d.remove();done();res();}}requestAnimationFrame(f);});
+}
+function lit(...ids){$$('.box,.tab').forEach(b=>b.classList.toggle('on',ids.includes(b.id)));}
+function edge(id,c,on){const p=document.getElementById(id);p.style.setProperty('--c',`var(--${c})`);p.classList.toggle('live',on);}
+async function busy(id,ms){const b=document.getElementById(id);b.style.setProperty('--d',ms+'ms');b.classList.remove('busy');void b.offsetWidth;b.classList.add('busy');await w(ms);b.classList.remove('busy');}
+
+/* ---------- card ---------- */
+function cardFill(k){
+  if(k==='fc'){card.className='card c-sky';card.innerHTML=`<div class="h"><span>Forecast 2026–27</span><span>rain</span></div><ul>`+
+    ZD.fc.map(f=>`<li class="ss"><span>${f[0]} · <span class="bn">${f[1]}</span></span><small>${f[2]}</small><strong class="${f[3]<0?'dn':'up'}">${f[3]<0?'▼':'▲'}${Math.abs(f[3])}%</strong></li>`).join('')+
+    `<li class="more">+ water loss, sunlight</li></ul>`;return;}
+  const c=k==='input'?INPUT:IMP;card.className='card c-'+c.c;
+  card.innerHTML=`<div class="h"><span>${c.h[0]}</span><span>${c.h[1]}</span></div><ul>`+c.li.map((l,i)=>`<li><span>${l}</span>${k==='imp'?`<em>#${i+1}</em>`:''}</li>`).join('')+`<li class="more">${c.more}</li></ul>`;}
+function cardAt(x,y,s,o,instant){if(instant)card.style.transition='none';card.style.left=x+'px';card.style.top=y+'px';card.style.setProperty('--s',s);card.style.setProperty('--o',o);if(instant){void card.offsetWidth;card.style.transition='';}}
+const cardHide=()=>cardAt(0,0,.2,0,true);
+function cardShow(k){cardFill(k);const [x,y]=REST[k];cardAt(x,y,1,1,true);}
+async function emerge(k,from){cardFill(k);const [bx,by]=BOXC[from];cardAt(bx,by,.25,0,true);await w(30);const [x,y]=REST[k];cardAt(x,y,1,1);await w(800);}
+async function enter(to){const [bx,by]=BOXC[to];cardAt(bx,by,.22,0);await w(760);}
+
+/* ---------- table, extras, chat ---------- */
+function line(c){const [t,k,pt]=c;const sup=k==='n'?'<sup class="s-n">N</sup>':k==='s'?'<sup class="s-n" style="color:var(--ink);border-color:var(--ink)">S</sup>':'';
+  return `<div class="${k==='f'?'fal':k?'k-'+k:''}">${t}${pt?`<span class="pt">${pt}</span>`:''}${sup}</div>`;}
+function table(filled){let s='<span></span>'+[1,2,3,4].map(p=>`<span class="h">Field ${p}</span>`).join('');
+  ZD.plan.forEach((r,y)=>{s+=`<span class="y">Y${y+1}<i>Rabi<br>Kh-1<br>Kh-2</i></span>`+r.map((t,p)=>`<div class="cell${filled?'':' e'}" data-y="${y}" data-p="${p}">${ZD.pat[t].map(line).join('')}</div>`).join('');});
+  $('#rt').innerHTML=s;$('#tf').innerHTML=filled?'<span class="lp">↻ Year 5 = Year 1</span><span>each year crops move one field</span>':'<span class="ph" style="width:100%">The plan appears here.</span>';}
+function extras(n){$('#TAB').classList.toggle('extras',n>0);
+  $('#mx').innerHTML=ZD.mx.slice(0,n).map(m=>`<div class="t-${m[0]}"><em>${m[1]}</em><span>${m[2]}</span></div>`).join('');}
+const cell=(y,p)=>$(`#rt .cell[data-y="${y}"][data-p="${p}"]`);
+function focus(v){ZD.focus.forEach(([y,p,s])=>{const c=cell(y,p);c.classList.toggle('fx',v);c.children[s].classList.toggle('hl',v);});}
+function kw(n){$('#A3').classList.toggle('kwon',n>0);$('#kw').innerHTML=ZD.kw.slice(0,n).map(k=>`<span class="c-${k[3]}">${k[1]}</span>`).join('');}
+const ansHTML=()=>ZD.ans.map(x=>x[0]+`<span class="tg c-${x[2]}">${x[1]}</span>`).join('');
+function chat(q,a){let s='';if(q)s+=`<div class="msg f"><span class="w">Farmer</span>${ZD.q}</div>`;
+  if(a)s+=`<div class="msg a"><span class="w">Agent 3</span><span class="ab">${a===true?ansHTML():''}</span></div>`;$('#chat').innerHTML=s;}
+
+/* ---------- state after each step ---------- */
+function reset(){$$('.fly').forEach(e=>e.remove());$$('.a').forEach(p=>p.classList.remove('live'));cardHide();table(false);extras(0);kw(0);chat();lit();$('#wloc').textContent=ZD.loc;}
+const FIN=[()=>cardShow('input'),()=>cardShow('imp'),()=>cardShow('fc'),()=>{cardHide();table(true);},()=>extras(4),()=>{chat(true);focus(true);},()=>kw(5),()=>chat(true,true)];
+function apply(n){reset();for(let k=0;k<=n;k++)FIN[k]();if(n>=5)focus(true);}
+
+/* ---------- animations ---------- */
+const PLAY=[
+ async()=>{lit('W');await busy('W',600);edge('e-W-XAI','sky',true);await emerge('input','W');},
+ async()=>{lit('XAI');cardShow('input');edge('e-W-XAI','sky',true);await w(300);await enter('XAI');edge('e-W-XAI','sky',false);
+   await busy('XAI',1300);edge('e-XAI-XGB','sun',true);await emerge('imp','XAI');},
+ async()=>{lit('XGB');cardShow('imp');edge('e-XAI-XGB','sun',true);await w(300);await enter('XGB');edge('e-XAI-XGB','sun',false);
+   await busy('XGB',1300);edge('e-XGB-ROT','sky',true);await emerge('fc','XGB');},
+ async()=>{lit('ROT','KB');cardShow('fc');edge('e-XGB-ROT','sky',true);await w(300);await enter('ROT');edge('e-XGB-ROT','sky',false);
+   await fly('e-KB-ROT','crop calendar + rules','clay',1000);await busy('ROT',1100);lit('ROT','TAB');
+   for(let y=0;y<4;y++){await fly('e-ROT-TAB',`Year ${y+1}`,'leaf',480);for(let p=0;p<4;p++){const c=cell(y,p);c.classList.remove('e');c.classList.add('pop');await w(70);}}
+   table(true);},
+ async()=>{lit('KB','ROT');await fly('e-KB-ROT','mixed / relay pairs','clay',1000);await busy('ROT',700);lit('ROT','TAB');
+   await fly('e-ROT-TAB','mixed + relay','leaf',600);$('#TAB').classList.add('extras');
+   for(let i=1;i<=4;i++){extras(i);await w(350);}},
+ async()=>{lit('F');chat(true);await w(900);await fly('e-F-A3','question','plum',1000);lit('A3','TAB');focus(true);await busy('A3',600);},
+ async()=>{for(let i=0;i<ZD.kw.length;i++){const k=ZD.kw[i];lit('A3',k[0]);await fly(k[2],k[1],k[3],800);kw(i+1);await w(200);}lit('A3');},
+ async()=>{lit('A3');await busy('A3',900);await fly('e-A3-F','answer','plum',900);lit('F');
+   chat(true,'s');const b=$('#chat .ab');let s='';
+   for(const [t,tag,c] of ZD.ans){for(const wd of t.split(/(\s+)/)){s+=wd;b.innerHTML=s;if(wd.trim())await w(55);}s+=`<span class="tg c-${c}">${tag}</span>`;b.innerHTML=s;await w(150);}
+   lit();},
+];
+function ui(n){$('#sn').textContent=`Step ${n+1} / ${N}`;const sc=$('#sc');sc.textContent=STEPS()[n];sc.classList.remove('in');void sc.offsetWidth;sc.classList.add('in');
+  $('#back').disabled=n<=0;$('#play').textContent=playing?'❚❚ Pause':'▶ Play';}
+async function go(n){
+  TOK.dead=true;TOK={dead:false};cur=n;
+  if(n>0)apply(n-1);else reset();ui(n);
+  try{await w(250);await PLAY[n]();apply(n);
+    if(playing){await w(n===N-1?4500:1500);go(n===N-1?0:n+1);}
+  }catch(e){if(!(e instanceof X))console.error(e);}
+}
+function setZone(z){zone=z;ZD=Z[z];$$('.zones button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.z===z?'true':'false'));}
+$$('.zones button').forEach(b=>b.addEventListener('click',()=>{setZone(b.dataset.z);go(0);}));
+$('#next').addEventListener('click',()=>go(cur>=N-1?0:cur+1));
+$('#back').addEventListener('click',()=>cur>0&&go(cur-1));
+$('#play').addEventListener('click',()=>{playing=!playing;ui(cur);if(playing)go(cur>=N-1?0:cur+1);else{TOK.dead=true;TOK={dead:false};apply(cur);}});
+addEventListener('keydown',e=>{if(e.key==='ArrowRight'){e.preventDefault();$('#next').click();}else if(e.key==='ArrowLeft'){e.preventDefault();$('#back').click();}else if(e.key===' '){e.preventDefault();$('#play').click();}});
+const hs=location.hash.slice(1).split('-');if(hs[1]&&Z[hs[1]])setZone(hs[1]);
+const st=parseInt(hs[0],10);
+if(st>=1&&st<=N){playing=false;cur=st-1;apply(cur);ui(cur);}else go(0);
+})();
+</script>
